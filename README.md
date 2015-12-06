@@ -7,7 +7,7 @@ and controls your dimmers.
 
 Dimmer software uses PWM to control brightness. Pin 2 is used for output.
 
-Use a 200 ohm resistor and a Mosfet to control the 12 volt led voltage.
+Use a Mosfet to control the 12 volt led voltage.
 
 You need to create a `network-settings.h` file in this folder before compiling. It should include the following:
 
