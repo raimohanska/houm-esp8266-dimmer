@@ -45,7 +45,6 @@ B.onValues(lightStateP, lightsP, (lightState, lights) => {
 net.createServer(socket => {
   var id
   console.log('connected')
-  sendBrightness(socket, 100)
   toCommandStream(socket).onValue(cmd => {
     let command = cmd.command
     let data = cmd.data
@@ -62,7 +61,8 @@ net.createServer(socket => {
   })
 
   B.fromEvent(socket, 'error').log("error")
-  removeSocketE.plug(B.fromEvent(socket, 'close').take(1).map(() => { socket, id }))
+  let discoE = B.fromEvent(socket, 'close').take(1).map(() => ({ socket, id }))
+  removeSocketE.plug(discoE)
 }).listen(8000)
 
 function toCommandStream(stream) {
