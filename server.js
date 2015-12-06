@@ -51,7 +51,7 @@ net.createServer(socket => {
     let data = cmd.data
     if (command == 'p') {
       console.log("Got ping")
-      sendBrightness(socket, randomBrightness());
+      sendPing(socket)
     } else if (command == 'i') {
       id = data
       console.log("Got id", id)
