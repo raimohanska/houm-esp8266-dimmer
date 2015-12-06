@@ -1,0 +1,18 @@
+{
+  "name": "esp8266_dimmer",
+  "version": "1.0.0",
+  "description": "Connects to server using TCP and listens for commands.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "baconjs": "^0.7",
+    "socket.io-client": "^1.3.6",
+    "lodash": "^3",
+    "ramda": "^0.17"
+  }
+}
