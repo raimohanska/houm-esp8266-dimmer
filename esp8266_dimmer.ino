@@ -74,7 +74,7 @@ void keepAlive() {
 
 // Range: 0-100
 void setBrightness(int b) {
-  analogWrite(2, map(b, 0, 100, 0, 1023));
+  analogWrite(2, map(b, 0, 255, 0, 1023));
 }
 
 int connectToHost() {

@@ -2,7 +2,7 @@
 
 Connects to server using TCP and listens for commands.
 
-Server sends character `b` followed by brightness as a single byte in the range of 0-100.
+Server sends character `b` followed by brightness as a single byte in the range of 0-255.
 
 Dimmer software uses PWM to control brightness. Pin 2 is used for output.
 
