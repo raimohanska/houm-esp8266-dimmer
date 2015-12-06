@@ -7,17 +7,43 @@ const io = require('socket.io-client')
 const houmSocket = io('http://houmi.herokuapp.com')
 const houmConnectE = B.fromEvent(houmSocket, "connect").map("HOUM").log("Connected to")
 const houmDisconnectE = B.fromEvent(houmSocket, "disconnect")
+const houmConfig = require('./houm-config.js')
 houmConnectE.onValue( () =>
-  houmSocket.emit('clientReady', require('./houm-config.js')))
+  houmSocket.emit('clientReady', { siteKey: houmConfig.siteKey}))
 
-B.fromEvent(houmSocket, 'setLightState')
+var lightStateP = B.fromEvent(houmSocket, 'setLightState')
   .scan({}, (state, lightState) => {
     const newState = R.clone(state)
-    newState[lightState._id] = lightState.bri
+    const id = houmConfig.lights[lightState._id]
+    if (id) {
+      newState[id] = lightState.bri
+    } else {
+      console.log("unknown light", lightState._id, "brightness", lightState.bri)
+    }
     return newState
   }).log("lightstate")
 
+var addSocketE = B.Bus()
+addSocketE.map(".id").log("Light connected")
+var removeSocketE = B.Bus()
+removeSocketE.map(".id").log("Light disconnected")
+
+var lightsP = B.update({},
+  removeSocketE, (lights, entry) => R.dissoc(entry.id, lights),
+  addSocketE, (lights, entry) => R.assoc(entry.id, entry.socket, lights)
+)
+
+B.onValues(lightStateP, lightsP, (lightState, lights) => {
+  let ids = R.keys(lightState).filter(id => R.contains(id, R.keys(lights)))
+  ids.forEach(id => {
+    let socket = lights[id]
+    let brightness = lightState[id]
+    sendBrightness(socket, brightness)
+  })
+})
+
 net.createServer(socket => {
+  var id
   console.log('connected')
   sendBrightness(socket, 100)
   toCommandStream(socket).onValue(cmd => {
@@ -27,15 +53,16 @@ net.createServer(socket => {
       console.log("Got ping")
       sendBrightness(socket, randomBrightness());
     } else if (command == 'i') {
-      console.log("Got id", data)
+      id = data
+      console.log("Got id", id)
+      addSocketE.push({socket, id})
     } else {
       console.log('received', command, data)
     }
   })
 
-  B.fromEvent(socket, 'data').onValue(data => {
-  })
   B.fromEvent(socket, 'error').log("error")
+  removeSocketE.plug(B.fromEvent(socket, 'close').take(1).map(() => { socket, id }))
 }).listen(8000)
 
 function toCommandStream(stream) {
