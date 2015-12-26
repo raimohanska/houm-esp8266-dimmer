@@ -45,6 +45,6 @@ In addition to wifi and server settings, this file assigns a `LIGHT_ID` number (
 To run the server, do
 
     npm install
-    ./server.js
+    coffee server.coffee
 
-Requires node version 4 or above.
+Works with Node.js 0.10 and newer.
