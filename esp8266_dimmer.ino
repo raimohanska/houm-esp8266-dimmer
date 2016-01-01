@@ -27,24 +27,7 @@ void loop() {
       Serial.print("Unknown command: "); Serial.println(command);
     }
   }
-  /*
-  for (int i = 0; i < 1024; i++) {
-    analogWrite(2, i);    
-    delay(1);
-  }
-  for (int i = 0; i < 1024; i++) {
-    analogWrite(2, 1024-i);    
-    delay(1);
-  }
-  */
-  
-  /*
-  analogWrite(2, 0);
-  digitalWrite(2, HIGH);
-  delay(2000);
-  digitalWrite(2, LOW);
-  delay(2000);
-  */
+
   if (client.connected()) {
     keepAlive();    
   } else {
@@ -66,7 +49,7 @@ void keepAlive() {
   if (rounds++ > 1000) {
     rounds = 0;
     Serial.println("Pinging");
-    client.write('p ');
+    client.write("p ");
     client.flush();
   }
   delay(10);
