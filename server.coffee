@@ -4,6 +4,7 @@ net = require('net')
 B = require('baconjs')
 R = require('ramda')
 io = require('socket.io-client')
+log = (msg...) -> console.log new Date(), msg...
 houmSocket = io('http://houmi.herokuapp.com')
 houmConnectE = B.fromEvent(houmSocket, "connect").map("HOUM").log("Connected to")
 houmDisconnectE = B.fromEvent(houmSocket, "disconnect")
@@ -18,14 +19,14 @@ lightStateP = B.fromEvent(houmSocket, 'setLightState')
     if (id)
       newState[id] = lightState.bri
     else
-      console.log("unknown light", lightState._id, "brightness", lightState.bri)
+      log("unknown light", lightState._id, "brightness", lightState.bri)
     newState
   )).log("lightstate")
 
 addSocketE = B.Bus()
-addSocketE.map(".id").log("Light connected")
+addSocketE.map(".id").forEach log, "Light connected"
 removeSocketE = B.Bus()
-removeSocketE.map(".id").log("Light disconnected")
+removeSocketE.map(".id").forEach log, "Light disconnected"
 
 lightsP = B.update({},
   removeSocketE, (lights, entry) => R.dissoc(entry.id, lights),
@@ -43,24 +44,25 @@ B.onValues(lightStateP, lightsP, (lightState, lights) =>
 
 net.createServer((socket) =>
   id = null
-  console.log('connected')
+  log 'connected', socket.remoteAddress
   toCommandStream(socket).onValue((cmd) =>
     command = cmd.command
     data = cmd.data
     if (command == 'p')
-      console.log("Got ping")
+      log("Got ping")
       sendPing(socket)
     else if (command == 'i')
       id = data
-      console.log("Got id", id)
+      log("Got id", id)
       addSocketE.push({socket, id})
+      removeSocketE.plug(discoE)
     else
-      console.log('received', command, data)
+      log('received', command, data)
   )
 
   B.fromEvent(socket, 'error').log("error")
   discoE = B.fromEvent(socket, 'close').take(1).map(() => ({ socket, id }))
-  removeSocketE.plug(discoE)
+  discoE.forEach => log 'disconnected', socket.remoteAddress
 ).listen(8000)
 
 toCommandStream = (stream) =>
@@ -76,7 +78,7 @@ toByteStream = (stream) =>
     B.fromArray(Array.prototype.slice.call(buffer, 0)))
 
 sendBrightness = (socket, b) =>
-  console.log("Sending brightness", b)
+  log("Sending brightness", b)
   socket.write("b", "ascii")
   socket.write(new Buffer([b]))
 
