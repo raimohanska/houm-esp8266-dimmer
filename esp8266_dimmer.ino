@@ -1,24 +1,32 @@
 #include "network_settings.h"
 #include <ESP8266WiFi.h>
+#include <EEPROM.h>
+
 WiFiClient client;
 
 int rounds = 0;
+int brightness = 0;
 
 void setup() {
+  EEPROM.begin(128);
   Serial.begin(115200);
   pinMode(2, OUTPUT);
   Serial.println();
-  connectToHost();
-  blink();  
+  brightness = EEPROM.read(0);
+  Serial.print("Using stored brightness: "); Serial.println(brightness);
+  setBrightness(brightness);
+  connectToHost(); 
 }
 
 void loop() {
   if (client.available() > 0) {
     char command = client.read();
     if (command == 'b') {
-      int b = readByte();
-      Serial.print("Got new brightness: "); Serial.println(b);
-      setBrightness(b);
+      brightness = readByte();
+      Serial.print("Got new brightness: "); Serial.println(brightness);
+      EEPROM.write(0, brightness);
+      EEPROM.commit();
+      setBrightness(brightness);
     } else if (command == 'p') {
       Serial.println("Got ping");
     } else if (command == '\n' || command == '\r') {
@@ -69,6 +77,7 @@ int connectToHost() {
 
   if (!client.connect(host, port)) {
     Serial.println("connection failed");
+    blink();
     return false;
   } else {
     client.write('i');
@@ -101,10 +110,10 @@ void connectToWifi() {
 }
 
 void blink() {
-  setBrightness(0);
+  setBrightness(brightness - 100);
   delay(200);
-  setBrightness(100);
+  setBrightness(brightness + 100);
   delay(200);
-  setBrightness(0);
+  setBrightness(brightness);
 }
 
