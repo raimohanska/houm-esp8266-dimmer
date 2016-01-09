@@ -8,12 +8,12 @@ int rounds = 0;
 int brightness = 0;
 
 void setup() {
-  EEPROM.begin(128);
+  //EEPROM.begin(128);
   Serial.begin(115200);
   pinMode(2, OUTPUT);
   Serial.println();
-  brightness = EEPROM.read(0);
-  Serial.print("Using stored brightness: "); Serial.println(brightness);
+  brightness = 0; // EEPROM.read(0);
+  //Serial.print("Using stored brightness: "); Serial.println(brightness);
   setBrightness(brightness);
   connectToHost(); 
 }
@@ -24,8 +24,10 @@ void loop() {
     if (command == 'b') {
       brightness = readByte();
       Serial.print("Got new brightness: "); Serial.println(brightness);
+      /*
       EEPROM.write(0, brightness);
       EEPROM.commit();
+      */
       setBrightness(brightness);
     } else if (command == 'p') {
       Serial.println("Got ping");
